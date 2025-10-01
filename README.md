@@ -64,9 +64,8 @@ git clone https://github.com/ItaloSLeao/CamadaEnlaceDados-Redes-I.git
 ```
 
 Abra o projeto em um Terminal de Comandos. Compile e execute a classe Principal.java usando os comandos:
-Java
 
-```
+```java
 javac Principal.java
 java Principal
 ```
