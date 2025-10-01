@@ -70,7 +70,9 @@ javac Principal.java
 java Principal
 ```
 
-Aprecie a simulação!
+Aprecie.
+
+![Simulação da transmissão](assets/simulacao-enlace.png)
 
 ## 🎓 Contexto Acadêmico
 
