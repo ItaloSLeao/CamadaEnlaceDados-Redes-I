@@ -247,12 +247,11 @@ public class CamadaFisicaTransmissora {
    * @return int[]                Array de inteiros com os bits codificados enquadrados.
    */
   protected static int[] camadaFisicaTransmissoraEnquadramentoViolacao(int[] fluxoBrutoDeBits) {
-
     //Variaveis para controlar a posicao bit a bit nos arrays de inteiros
-    int deslocamentoFluxoBruto = 31; //Posicao do bit (31 a 0) no int de entrada
-    int deslocamentoFluxoEnquadrado = 31; //Posicao do bit (31 a 0) no int de saida
-    int idxFluxoBruto = 0; //Indice do array de int de entrada
-    int idxFluxoEnquadrado = 0; //Indice do array de int de saida
+    int posicaoBitEntrada = 31; //Posicao do bit (31 a 0) no int de entrada
+    int posicaoBitSaida = 31; //Posicao do bit (31 a 0) no int de saida
+    int indiceEntrada = 0; //Indice do array de int de entrada
+    int indiceSaida = 0; //Indice do array de int de saida
     int bit; //Armazena o bit lido
     int proximosBits; //Verificacao de padding
 
@@ -260,31 +259,31 @@ public class CamadaFisicaTransmissora {
     int[] fluxoEnquadradoTemp = new int[fluxoBrutoDeBits.length * 2];
 
     //Insere a flag de violacao (11) no inicio do quadro
-    fluxoEnquadradoTemp[idxFluxoEnquadrado] |= 1 << deslocamentoFluxoEnquadrado--;
-    fluxoEnquadradoTemp[idxFluxoEnquadrado] |= 1 << deslocamentoFluxoEnquadrado--;
+    fluxoEnquadradoTemp[indiceSaida] |= 1 << posicaoBitSaida--;
+    fluxoEnquadradoTemp[indiceSaida] |= 1 << posicaoBitSaida--;
 
     //Itera por cada bit do fluxo de entrada
     for (int i = 0; i < fluxoBrutoDeBits.length * 32; i++) {
       //Avanca para o proximo int do array de entrada se necessario
-      if (deslocamentoFluxoBruto < 0) {
-        idxFluxoBruto++;
-        deslocamentoFluxoBruto = 31;
+      if (posicaoBitEntrada < 0) {
+        indiceEntrada++;
+        posicaoBitEntrada = 31;
       }
 
       //Encerra se todos os ints de entrada foram lidos
-      if(idxFluxoBruto >= fluxoBrutoDeBits.length) break;
+      if(indiceEntrada >= fluxoBrutoDeBits.length) break;
 
       //A cada dois bits, verifica se o restante do fluxo eh apenas padding (00000000)
       if (i % 2 == 0) {
-        if(deslocamentoFluxoBruto - 1 < 0) continue; //Pula se nao ha dois bits para ler
-        int bit1 = Math.abs((fluxoBrutoDeBits[idxFluxoBruto] & (1 << deslocamentoFluxoBruto)) >> deslocamentoFluxoBruto);
-        int bit2 = Math.abs((fluxoBrutoDeBits[idxFluxoBruto] & (1 << deslocamentoFluxoBruto - 1)) >> deslocamentoFluxoBruto - 1);
+        if(posicaoBitEntrada - 1 < 0) continue; //Pula se nao ha dois bits para ler
+        int bit1 = Math.abs((fluxoBrutoDeBits[indiceEntrada] & (1 << posicaoBitEntrada)) >> posicaoBitEntrada);
+        int bit2 = Math.abs((fluxoBrutoDeBits[indiceEntrada] & (1 << posicaoBitEntrada - 1)) >> posicaoBitEntrada - 1);
         proximosBits = bit1 + bit2;
         //Se encontrou um par de bits '00'
         if (proximosBits == 0 && bit1 == 0 && bit2 == 0) {
           boolean fimReal = true;
           //Verifica se todos os bits restantes em todo o array sao zero
-          for(int k=idxFluxoBruto; k<fluxoBrutoDeBits.length; k++){
+          for(int k=indiceEntrada; k<fluxoBrutoDeBits.length; k++){
             if(fluxoBrutoDeBits[k] != 0) fimReal = false;
           }
           //Se for, encerra o loop para evitar processar zeros desnecessarios
@@ -293,43 +292,42 @@ public class CamadaFisicaTransmissora {
       } //Fim if
 
       //Extrai o bit atual da entrada e o copia para a saida
-      bit = (fluxoBrutoDeBits[idxFluxoBruto] & (1 << deslocamentoFluxoBruto)) >> deslocamentoFluxoBruto;
+      bit = (fluxoBrutoDeBits[indiceEntrada] & (1 << posicaoBitEntrada)) >> posicaoBitEntrada;
       bit = Math.abs(bit);
-      fluxoEnquadradoTemp[idxFluxoEnquadrado] |= (bit) << deslocamentoFluxoEnquadrado;
+      fluxoEnquadradoTemp[indiceSaida] |= (bit) << posicaoBitSaida;
 
-      deslocamentoFluxoBruto--;
-      deslocamentoFluxoEnquadrado--;
+      posicaoBitEntrada--;
+      posicaoBitSaida--;
 
       //Avanca para o proximo int do array de saida se necessario
-      if (deslocamentoFluxoEnquadrado < 0) {
-        idxFluxoEnquadrado++;
-        if(idxFluxoEnquadrado >= fluxoEnquadradoTemp.length) break; //Evita estourar o array temporario
-        deslocamentoFluxoEnquadrado = 31;
+      if (posicaoBitSaida < 0) {
+        indiceSaida++;
+        if(indiceSaida >= fluxoEnquadradoTemp.length) break; //Evita estourar o array temporario
+        posicaoBitSaida = 31;
       }
     } //Fim for 
 
     //Garante alinhamento para inserir a flag final
-    if(deslocamentoFluxoEnquadrado % 2 == 0) {
-      deslocamentoFluxoEnquadrado--;
+    if(posicaoBitSaida % 2 == 0) {
+      posicaoBitSaida--;
     }
     
     //Avanca para o proximo int se nao houver espaco para a flag
-    if(deslocamentoFluxoEnquadrado < 1) {
-      idxFluxoEnquadrado++;
-      deslocamentoFluxoEnquadrado = 31;
+    if(posicaoBitSaida < 1) {
+      indiceSaida++;
+      posicaoBitSaida = 31;
     }
     //Insere a flag de violacao (11) no final do quadro
-    fluxoEnquadradoTemp[idxFluxoEnquadrado] |= 1 << deslocamentoFluxoEnquadrado--;
-    fluxoEnquadradoTemp[idxFluxoEnquadrado] |= 1 << deslocamentoFluxoEnquadrado--;
+    fluxoEnquadradoTemp[indiceSaida] |= 1 << posicaoBitSaida--;
+    fluxoEnquadradoTemp[indiceSaida] |= 1 << posicaoBitSaida--;
 
     //Remocao de espacos nao utilizados
-    int tamanhoFinal = (deslocamentoFluxoEnquadrado < 31) ? idxFluxoEnquadrado + 1 : idxFluxoEnquadrado;
+    int tamanhoFinal = (posicaoBitSaida < 31) ? indiceSaida + 1 : indiceSaida;
     if (tamanhoFinal == 0 && fluxoBrutoDeBits.length > 0) tamanhoFinal = 1;
 
     int[] fluxoBitsFinal = Arrays.copyOf(fluxoEnquadradoTemp, tamanhoFinal);
 
     return fluxoBitsFinal;
-
   } //Fim camadaFisicaTransmissoraEnquadramentoViolacao
 
 } //Fim da classe CamadaFisicaTransmissora
