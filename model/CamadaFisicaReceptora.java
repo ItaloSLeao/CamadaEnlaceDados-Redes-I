@@ -264,29 +264,29 @@ public class CamadaFisicaReceptora {
       totalBits = (ultimoIntComDados * 32) + posUltimoBit + 1;
     }
 
-    // Validacao basica: precisa ter pelo menos as duas flags (4 bits)
+    //Validacao basica: precisa ter pelo menos as duas flags (4 bits)
     if (totalBits < 4) {
       System.err.println("Erro de desenquadramento: fluxo de bits muito curto.");
       return new int[0];
     }
 
     //Calcula o tamanho do novo fluxo de bits (sem as flags)
-    int numDataBits = totalBits - 4;
-    int tamanhoArraySaida = (numDataBits + 31) / 32;
+    int numBitsCargaUtil = totalBits - 4;
+    int tamanhoArraySaida = (numBitsCargaUtil + 31) / 32;
     int[] fluxoDesenquadrado = new int[tamanhoArraySaida];
 
     //Copia os bits de dados (pulando as flags)
-    int idxEntrada = 0;
+    int indiceEntrada = 0;
     int deslocamentoEntrada = 29; //Pula os 2 primeiros bits (pos 31 e 30)
-    int idxSaida = 0;
+    int indiceSaida = 0;
     int deslocamentoSaida = 31;
 
-    for (int i = 0; i < numDataBits; i++) {
+    for (int i = 0; i < numBitsCargaUtil; i++) {
       //Pega o bit da entrada
-      int bit = (fluxoBitsEnquadrado[idxEntrada] >> deslocamentoEntrada) & 1;
+      int bit = (fluxoBitsEnquadrado[indiceEntrada] >> deslocamentoEntrada) & 1;
 
       //Coloca o bit na saida
-      fluxoDesenquadrado[idxSaida] |= bit << deslocamentoSaida;
+      fluxoDesenquadrado[indiceSaida] |= bit << deslocamentoSaida;
 
       //Atualiza os ponteiros
       deslocamentoEntrada--;
@@ -294,11 +294,11 @@ public class CamadaFisicaReceptora {
 
       if (deslocamentoEntrada < 0) {
         deslocamentoEntrada = 31;
-        idxEntrada++;
+        indiceEntrada++;
       }
       if (deslocamentoSaida < 0) {
         deslocamentoSaida = 31;
-        idxSaida++;
+        indiceSaida++;
       }
 
     } //Fim for
