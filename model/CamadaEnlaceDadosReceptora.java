@@ -227,8 +227,8 @@ public class CamadaEnlaceDadosReceptora {
         if (dentroDoQuadro) {
           //FLAG de fim de quadro encontrada. Processa o que acumulou.
           if (!cargaUtilBruta.isEmpty()) {
-              //Implementacao do de-stuffing com uma funcao deStuffBits
-              ArrayList<Integer> cargaUtilLimpa = deStuffBits(cargaUtilBruta);
+              //Implementacao do desestufamento com uma funcao desestufarBits
+              ArrayList<Integer> cargaUtilLimpa = desestufarBits(cargaUtilBruta);
               quadroOriginalList.addAll(cargaUtilLimpa);
               cargaUtilBruta.clear(); //Limpa para o proximo quadro
           }
@@ -245,6 +245,11 @@ public class CamadaEnlaceDadosReceptora {
       } //Fim if-else
     } //Fim for
 
+    if(!cargaUtilBruta.isEmpty()){
+      ArrayList<Integer> cargaUtilLimpa = desestufarBits(cargaUtilBruta);
+      quadroOriginalList.addAll(cargaUtilLimpa);
+    }
+
     int[] quadroOriginal = new int[quadroOriginalList.size()];
 
     for (int i = 0; i < quadroOriginalList.size(); i++) {
@@ -257,11 +262,11 @@ public class CamadaEnlaceDadosReceptora {
 
 
   /**
-   * Funcao auxiliar que realiza o de-stuffing em uma lista de bytes.
+   * Funcao auxiliar que realiza o desestufamento em uma lista de bytes.
    * @param cargaUtilBruta A lista de bytes que compoe a carga util de um quadro.
    * @return ArrayList<Integer> A lista de bytes apos a remocao dos bits de stuffing.
    */
-  private static ArrayList<Integer> deStuffBits(ArrayList<Integer> cargaUtilBruta) {
+  private static ArrayList<Integer> desestufarBits(ArrayList<Integer> cargaUtilBruta) {
     ArrayList<Integer> bytesDecodificados = new ArrayList<>();
     int contBits1 = 0;
     int byteSaidaAtual = 0;
